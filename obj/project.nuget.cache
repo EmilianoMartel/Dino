@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "EKXLBumMZ+FPg9/s/bEUJo8fWunhggsRJxeCH+VumER9OOY0SrtecSXA8UdD1ATBtbDnAoIkLipB51r8CQywYA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\emi_p\\OneDrive\\Desktop\\Image\\Image\\Taller de desarrollo\\Dino\\Dino\\Dino.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\emi_p\\.nuget\\packages\\raylib-cs\\4.5.0.4\\raylib-cs.4.5.0.4.nupkg.sha512",
+    "C:\\Users\\emi_p\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}
