@@ -11,9 +11,9 @@ public class Program
     const int FLOOR_HEIGHT = 600;
     const int FLOOR_LENGTH = 2400;
     const int CLOUD_LENGTH = 95;
-    const float ORIGINAL_SPEED = 0.2f;
-    const float JUMP_IMPULSE = 0.6f;
-    const float GRAVITY = 0.00050f;
+    const float ORIGINAL_SPEED = 500f;
+    const float JUMP_IMPULSE = 220f;
+    const float GRAVITY = 170f;
 
     //IMAGES
     static Image imagePlayer = Raylib.LoadImage("assets/dinosaur.png");
@@ -27,7 +27,7 @@ public class Program
 
     static Vector2 playerPosition = new Vector2(150, FLOOR_HEIGHT);
 
-    static float cactusSpeed = ORIGINAL_SPEED;
+    static float gameSpeed = ORIGINAL_SPEED;
 
     //CACTUS POSITION
     static Vector2 cactusPosition = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
@@ -59,6 +59,8 @@ public class Program
 
     static bool isJumping = false;
     static float playerSpeed = 0f;
+
+    static float delta = 0;
 
     public static void Main()
     {
@@ -102,6 +104,8 @@ public class Program
 
         while (!Raylib.WindowShouldClose())
         {
+            delta = Raylib.GetFrameTime();
+
             if (Raylib.IsKeyPressed(KeyboardKey.KEY_SPACE))
             {
                 gameStart = true;
@@ -228,8 +232,8 @@ public class Program
 
         if (isJumping)
         {
-            playerPosition.Y += playerSpeed;
-            playerSpeed += GRAVITY;
+            playerPosition.Y += playerSpeed * delta;
+            playerSpeed += GRAVITY * delta;
 
             if (playerPosition.Y >= FLOOR_HEIGHT)
             {
@@ -242,16 +246,16 @@ public class Program
         return playerPosition;
     }
 
-    private static void UpdateCactus(Texture2D textureCactus, ref Vector2 positionCactus, ref bool startMoving)
+    private static void UpdateCactus(Texture2D textureCactus, ref Vector2 positionCactus, ref bool isMoving)
     {
-        if (startMoving)
+        if (isMoving)
         {
-            positionCactus.X -= cactusSpeed;
+            positionCactus.X -= gameSpeed * delta;
         }
 
         if (positionCactus.X + textureCactus.width <= 0)
         {
-            startMoving = false;
+            isMoving = false;
             positionCactus.X = SCREEN_WIDTH + textureCactus.width;
         }
     }
@@ -282,8 +286,8 @@ public class Program
 
     private static void UpdateFloor()
     {
-        floorPosition.X -= cactusSpeed;
-        floorPosition2.X -= cactusSpeed;
+        floorPosition.X -= gameSpeed * delta;
+        floorPosition2.X -= gameSpeed * delta;
 
         if (floorPosition.X + FLOOR_LENGTH <= 0)
         {
@@ -298,8 +302,8 @@ public class Program
 
     private static void UpdateClouds()
     {
-        cloudPosition.X -= (cactusSpeed / 10);
-        cloudPosition2.X -= (cactusSpeed / 10);
+        cloudPosition.X -= (gameSpeed / 10) * delta;
+        cloudPosition2.X -= (gameSpeed / 10) * delta;
 
         if (cloudPosition.X + CLOUD_LENGTH <= 0)
         {
