@@ -20,9 +20,10 @@ public class PruebasRayLib
     static Vector2 position = new Vector2(-1000, FLOOR_POSITION);
 
     //Cactus
-    static Vector2[] cactusPosition = new Vector2[10];
+    static List<Vector2> cactusPosition = new List<Vector2>();
     const float Y_POSITION_CACTUS = 10f;
     static float treshold = cactus.width * 2;
+
 
     //Movement
     static float movement = 50f;
@@ -95,7 +96,6 @@ public class PruebasRayLib
     private static void UpdatePlayer()
     {
         Jump();
-        //PlayerMovement();
     }
 
     private static void DrawSky()
@@ -130,48 +130,35 @@ public class PruebasRayLib
 
     static void UpdateCactus(Texture2D cactusTexture)
     {
-        for (int i = 0; i < cactusPosition.Length; i++)
+        Raylib.DrawTexture(cactusTexture, 0, screenHeight / 2, Color.WHITE);
+        Raylib.DrawTexture(cactusTexture, 0 + (int)treshold, screenHeight / 2, Color.WHITE);
+        for (int i = 0; i < cactusPosition.Count; i++)
         {
-            try
-            {
-                cactusPosition[i].X -= movement * delta;
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            Rectangle bounds = new Rectangle(cactusPosition[i].X, cactusPosition[i].Y, cactusTexture.width, cactusTexture.height);
+            Vector2 positionCactus = cactusPosition[i];
+            positionCactus.X -= movement * delta;
+            cactusPosition[i] = positionCactus;
+            Rectangle bounds = new Rectangle(positionCactus.X, positionCactus.Y, cactusTexture.width, cactusTexture.height);
             Raylib.DrawRectangle((int)bounds.x, (int)bounds.y - cactusTexture.height / 2, cactusTexture.width, cactusTexture.height, Color.RED);
-            Raylib.DrawTexture(cactusTexture, (int)cactusPosition[i].X, (int)cactusPosition[i].Y - cactusTexture.height / 2, Color.WHITE);
-            
+            Raylib.DrawTexture(cactusTexture, (int)positionCactus.X, (int)positionCactus.Y - cactusTexture.height / 2, Color.WHITE);
+
         }
     }
 
     static void AddRandomCactus()
     {
-        float position = 0;
-        for (int i = 0; i < 10; i++)
-        {
-            cactusPosition[i].X = GetRandomPosition((int)position);
-            cactusPosition[i].Y = (screenHeight / 2) + 20;
-
-            position = cactusPosition[i].X;
-
-            for (int j = 0; j < i; j++)
-            {
-                if (Math.Abs(cactusPosition[i].X - cactusPosition[j].X) < treshold)
-                {
-                    cactusPosition[i].X += treshold;
-                }
-            }
-        }
+        Vector2 position = new Vector2(GetRandomPosition(), (screenHeight / 2) + 20);
+        cactusPosition.Add(position);
     }
 
-    static int GetRandomPosition(int min)
+    static void RelocateCactus()
+    {
+
+    }
+
+    static int GetRandomPosition()
     {
         Random random = new Random();
 
-        return random.Next(min, min+400);
+        return random.Next(screenWidth,screenWidth+screenWidth/2);
     }
 }
