@@ -7,6 +7,8 @@ public class Program
     const int SCREEN_WIDTH = 1240;
     const int SCREEN_HEIGTH = 720;
 
+    static Random random = new Random();
+
     //CONST
     const int FLOOR_HEIGHT = 600;
     const int FLOOR_LENGTH = 2400;
@@ -43,6 +45,9 @@ public class Program
     static float delta = 0;
 
     //Cactus variables
+    static float timeBetweenCactus;
+    const float MIN_TIME = 0.7f;
+    const float MAX_TIME = 2.5f;
     static float timerCactus;
     static bool newCactus = true;
 
@@ -68,6 +73,8 @@ public class Program
 
     public static void Main()
     {
+        timeBetweenCactus = (float)(random.NextDouble() * (MAX_TIME - MIN_TIME) + MIN_TIME);
+
         Color currentColor = Color.WHITE;
 
         Raylib.InitWindow(SCREEN_WIDTH, SCREEN_HEIGTH, "Dino Game");
@@ -129,8 +136,9 @@ public class Program
                 if (!newCactus)
                 {
                     timerCactus += Raylib.GetFrameTime();
-                    if (timerCactus >= 0.7f)
+                    if (timerCactus >= timeBetweenCactus)
                     {
+                        timeBetweenCactus = (float)(random.NextDouble() * (MAX_TIME - MIN_TIME) + MIN_TIME);
                         newCactus = true;
                         timerCactus = 0f;
                     }
@@ -218,7 +226,10 @@ public class Program
         Raylib.DrawText("HighScore: " + highScore, 1000, 30, 30, Color.DARKGRAY);
 
         Raylib.DrawText("press the SPACEBAR to JUMP", 30, 30, 20, Color.DARKGRAY);
-        Raylib.DrawText("JUMP TO START", 30, 60, 20, Color.DARKGRAY);
+        if (!gameStart)
+        {
+            Raylib.DrawText("JUMP TO START", 30, 60, 20, Color.DARKGRAY);
+        }
 
         Raylib.DrawRectangle(0, 0, (int)SCREEN_WIDTH, 5, Color.DARKGRAY);
         Raylib.DrawRectangle(0, 5, 5, (int)SCREEN_HEIGTH - 10, Color.DARKGRAY);
@@ -344,6 +355,8 @@ public class Program
         timerCactus = 0;
 
         playerPosition.Y = FLOOR_HEIGHT;
+        isJumping = false;
+        playerSpeed = 0;
 
         floorPosition.X = 0;
         floorPosition2.X = floorPosition.X + FLOOR_LENGTH;
