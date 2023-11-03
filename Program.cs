@@ -3,7 +3,7 @@ using System.Numerics;
 
 public class Program
 {
-    //SCREEN
+    //Screen
     const int SCREEN_WIDTH = 1240;
     const int SCREEN_HEIGTH = 720;
 
@@ -12,10 +12,10 @@ public class Program
     const int FLOOR_LENGTH = 2400;
     const int CLOUD_LENGTH = 95;
     const float ORIGINAL_SPEED = 500f;
-    const float JUMP_IMPULSE = 220f;
-    const float GRAVITY = 170f;
+    const float JUMP_IMPULSE = 350f;
+    const float GRAVITY = 335f;
 
-    //IMAGES
+    //Images
     static Image imagePlayer = Raylib.LoadImage("assets/dinosaur.png");
     static Image imageCactusLarge = Raylib.LoadImage("assets/cacti1.png");
     static Image imageCactus2 = Raylib.LoadImage("assets/cacti2.png");
@@ -25,29 +25,24 @@ public class Program
     static Image imageCloud1 = Raylib.LoadImage("assets/cloud.png");
     static Image imageCloud2 = Raylib.LoadImage("assets/cloud.png");
 
+    //Player view position
     static Vector2 playerPosition = new Vector2(150, FLOOR_HEIGHT);
 
+    //Gameplay
     static float gameSpeed = ORIGINAL_SPEED;
 
-    //CACTUS POSITION
-    static Vector2 cactusPosition = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
-    static Vector2 cactusPosition2 = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
-    static Vector2 cactusPosition3 = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
-
-    static Vector2 floorPosition = new Vector2(0, FLOOR_HEIGHT);
-    static Vector2 floorPosition2 = new Vector2(0, FLOOR_HEIGHT);
-
-    static Vector2 cloudPosition = new Vector2(SCREEN_WIDTH, SCREEN_HEIGTH / 2);
-    static Vector2 cloudPosition2 = new Vector2(SCREEN_WIDTH * 2, cloudPosition.Y - 50);
-
+    //Score
+    static string scoreText = "000000";
     static float score = 0;
     static float timerScore = 0;
     static float highScore = 0;
-
     static int hp = 1;
-
     static bool gameStart = false;
+    static bool isJumping = false;
+    static float playerSpeed = 0f;
+    static float delta = 0;
 
+    //Cactus variables
     static float timerCactus;
     static bool newCactus = true;
 
@@ -55,12 +50,21 @@ public class Program
     static bool startMovingCactus2 = false;
     static bool startMovingCactus3 = false;
 
+    //Cactus Position
+    static Vector2 cactusPosition = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
+    static Vector2 cactusPosition2 = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
+    static Vector2 cactusPosition3 = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
+
+    //Floor position
+    static Vector2 floorPosition = new Vector2(0, FLOOR_HEIGHT);
+    static Vector2 floorPosition2 = new Vector2(0, FLOOR_HEIGHT);
+
+    //Cloud Position
+    static Vector2 cloudPosition = new Vector2(SCREEN_WIDTH, SCREEN_HEIGTH / 2);
+    static Vector2 cloudPosition2 = new Vector2(SCREEN_WIDTH * 2, cloudPosition.Y - 50);
+
+    //UI variables
     static int gameOverTextPositionY = 1000;
-
-    static bool isJumping = false;
-    static float playerSpeed = 0f;
-
-    static float delta = 0;
 
     public static void Main()
     {
@@ -68,11 +72,10 @@ public class Program
 
         Raylib.InitWindow(SCREEN_WIDTH, SCREEN_HEIGTH, "Dino Game");
 
-        // PLAYER
+        //Textures
         Texture2D texturePlayer = Raylib.LoadTextureFromImage(imagePlayer);
         Raylib.UnloadImage(imagePlayer);
 
-        //CACTI
         Texture2D textureCactus = Raylib.LoadTextureFromImage(imageCactusLarge);
         Raylib.UnloadImage(imageCactusLarge);
 
@@ -82,21 +85,18 @@ public class Program
         Texture2D textureCactus3 = Raylib.LoadTextureFromImage(imageCactus3);
         Raylib.UnloadImage(imageCactus3);
 
-        //FLOOR
         Texture2D textureFloor = Raylib.LoadTextureFromImage(imageFloor);
         Raylib.UnloadImage(imageFloor);
 
         Texture2D textureFloor2 = Raylib.LoadTextureFromImage(imageFloor2);
         Raylib.UnloadImage(imageFloor2);
 
-        //CLOUDS
         Texture2D textureCloud1 = Raylib.LoadTextureFromImage(imageCloud1);
         Raylib.UnloadImage(imageCloud1);
 
         Texture2D textureCloud2 = Raylib.LoadTextureFromImage(imageCloud2);
         Raylib.UnloadImage(imageCloud2);
 
-        //POSITIONING OUT OF SCREEN
         cactusPosition.X = SCREEN_WIDTH + textureCactus.width;
         cactusPosition2.X = SCREEN_WIDTH + textureCactus2.width;
         cactusPosition3.X = SCREEN_WIDTH + textureCactus3.width;
@@ -106,29 +106,7 @@ public class Program
         {
             delta = Raylib.GetFrameTime();
 
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_SPACE))
-            {
-                gameStart = true;
-            }
-
-            if (hp <= 0)
-            {
-                gameStart = false;
-            }
-
-            //RESTART OPTION
-            if (Raylib.IsKeyPressed(KeyboardKey.KEY_R) && !gameStart)
-            {
-                cactusPosition.X = SCREEN_WIDTH + textureCactus.width;
-                cactusPosition2.X = SCREEN_WIDTH + textureCactus2.width;
-                cactusPosition3.X = SCREEN_WIDTH + textureCactus3.width;
-
-                ResetGame();
-            }
-
-            UpdateClouds();
-
-            //GAMEPLAY
+            //Gameplay
             if (gameStart == true)
             {
                 UpdatePlayer();
@@ -163,6 +141,31 @@ public class Program
             {
                 gameOverTextPositionY = SCREEN_HEIGTH / 2;
             }
+
+            //Start game Logic
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_SPACE))
+            {
+                gameStart = true;
+            }
+
+            if (hp <= 0)
+            {
+                gameStart = false;
+            }
+
+            //RestartOption
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_R) && !gameStart)
+            {
+                cactusPosition.X = SCREEN_WIDTH + textureCactus.width;
+                cactusPosition2.X = SCREEN_WIDTH + textureCactus2.width;
+                cactusPosition3.X = SCREEN_WIDTH + textureCactus3.width;
+
+                ResetGame();
+            }
+
+            UpdateClouds();
+
+            
 
             //COLLISSION
             Rectangle boundsPlayer = new Rectangle((int)playerPosition.X - texturePlayer.width / 2, (int)playerPosition.Y - texturePlayer.height, texturePlayer.width, texturePlayer.height);
@@ -207,7 +210,11 @@ public class Program
 
     private static void DrawUI()
     {
-        Raylib.DrawText("Score: " + score, 800, 30, 30, Color.DARKGRAY);
+        int delete;
+        string addText = score.ToString();
+        delete = 6 - addText.Length;
+        scoreText = scoreText.Substring(0, delete) + addText;
+        Raylib.DrawText("Score: " + scoreText, 700, 30, 30, Color.DARKGRAY);
         Raylib.DrawText("HighScore: " + highScore, 1000, 30, 30, Color.DARKGRAY);
 
         Raylib.DrawText("press the SPACEBAR to JUMP", 30, 30, 20, Color.DARKGRAY);
@@ -232,7 +239,7 @@ public class Program
 
         if (isJumping)
         {
-            playerPosition.Y += playerSpeed * delta;
+            playerPosition.Y += playerSpeed * delta + GRAVITY / 2 * delta * delta;
             playerSpeed += GRAVITY * delta;
 
             if (playerPosition.Y >= FLOOR_HEIGHT)
