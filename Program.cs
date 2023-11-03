@@ -1,4 +1,5 @@
 ﻿using Raylib_cs;
+using System.Net.NetworkInformation;
 using System.Numerics;
 
 public class Program
@@ -27,6 +28,9 @@ public class Program
     static Image imageCloud1 = Raylib.LoadImage("assets/cloud.png");
     static Image imageCloud2 = Raylib.LoadImage("assets/cloud.png");
 
+    //Textures
+    static List<Texture2D> cactusTextureList = new List<Texture2D>();
+
     //Player view position
     static Vector2 playerPosition = new Vector2(150, FLOOR_HEIGHT);
 
@@ -49,16 +53,14 @@ public class Program
     const float MIN_TIME = 0.7f;
     const float MAX_TIME = 2.5f;
     static float timerCactus;
-    static bool newCactus = true;
 
-    static bool startMovingCactus1 = false;
-    static bool startMovingCactus2 = false;
-    static bool startMovingCactus3 = false;
 
     //Cactus Position
-    static Vector2 cactusPosition = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
-    static Vector2 cactusPosition2 = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
-    static Vector2 cactusPosition3 = new Vector2(SCREEN_WIDTH, FLOOR_HEIGHT);
+    static Vector2[] cactusPositionArray = new Vector2[10];
+    static bool[] isMovingArray = new bool[10];
+    static int indexArray = 0;
+    static Texture2D[] cactusActiveTextureArray = new Texture2D[10];
+    static Rectangle[] boundArray = new Rectangle[10];
 
     //Floor position
     static Vector2 floorPosition = new Vector2(0, FLOOR_HEIGHT);
@@ -83,13 +85,13 @@ public class Program
         Texture2D texturePlayer = Raylib.LoadTextureFromImage(imagePlayer);
         Raylib.UnloadImage(imagePlayer);
 
-        Texture2D textureCactus = Raylib.LoadTextureFromImage(imageCactusLarge);
+        cactusTextureList.Add(Raylib.LoadTextureFromImage(imageCactusLarge));
         Raylib.UnloadImage(imageCactusLarge);
 
-        Texture2D textureCactus2 = Raylib.LoadTextureFromImage(imageCactus2);
+        cactusTextureList.Add(Raylib.LoadTextureFromImage(imageCactus2));
         Raylib.UnloadImage(imageCactus2);
 
-        Texture2D textureCactus3 = Raylib.LoadTextureFromImage(imageCactus3);
+        cactusTextureList.Add(Raylib.LoadTextureFromImage(imageCactus2));
         Raylib.UnloadImage(imageCactus3);
 
         Texture2D textureFloor = Raylib.LoadTextureFromImage(imageFloor);
@@ -104,9 +106,6 @@ public class Program
         Texture2D textureCloud2 = Raylib.LoadTextureFromImage(imageCloud2);
         Raylib.UnloadImage(imageCloud2);
 
-        cactusPosition.X = SCREEN_WIDTH + textureCactus.width;
-        cactusPosition2.X = SCREEN_WIDTH + textureCactus2.width;
-        cactusPosition3.X = SCREEN_WIDTH + textureCactus3.width;
         floorPosition2.X = floorPosition.X + FLOOR_LENGTH;
 
         while (!Raylib.WindowShouldClose())
@@ -119,12 +118,6 @@ public class Program
                 UpdatePlayer();
                 UpdateFloor();
 
-                UpdateCactus(textureCactus, ref cactusPosition, ref startMovingCactus1);
-                UpdateCactus(textureCactus2, ref cactusPosition2, ref startMovingCactus2);
-                UpdateCactus(textureCactus3, ref cactusPosition3, ref startMovingCactus3);
-
-                CactusRandomizer(textureCactus, textureCactus2, textureCactus3);
-
                 timerScore += Raylib.GetFrameTime();
 
                 if (timerScore >= 1f)
@@ -133,16 +126,13 @@ public class Program
                     timerScore = 0f;
                 }
 
-                if (!newCactus)
+                if (Raylib.IsKeyPressed(KeyboardKey.KEY_A))
                 {
-                    timerCactus += Raylib.GetFrameTime();
-                    if (timerCactus >= timeBetweenCactus)
-                    {
-                        timeBetweenCactus = (float)(random.NextDouble() * (MAX_TIME - MIN_TIME) + MIN_TIME);
-                        newCactus = true;
-                        timerCactus = 0f;
-                    }
+                    NewCactusLogic();
                 }
+
+                NewCactusLogic();
+                UpdateCactus();
             }
 
             else if (hp == 0)
@@ -173,41 +163,22 @@ public class Program
 
             UpdateClouds();
 
-            
-
-            //COLLISSION
+            //Collision
             Rectangle boundsPlayer = new Rectangle((int)playerPosition.X - texturePlayer.width / 2, (int)playerPosition.Y - texturePlayer.height, texturePlayer.width, texturePlayer.height);
 
-            Rectangle boundsCactus = new Rectangle((int)cactusPosition.X - textureCactus.width / 2, (int)cactusPosition.Y - textureCactus.height, textureCactus.width, textureCactus.height);
-            Rectangle boundsCactus2 = new Rectangle((int)cactusPosition2.X - textureCactus2.width / 2, (int)cactusPosition2.Y - textureCactus2.height, textureCactus2.width, textureCactus2.height);
-            Rectangle boundsCactus3 = new Rectangle((int)cactusPosition3.X - textureCactus3.width / 2, (int)cactusPosition3.Y - textureCactus3.height, textureCactus3.width, textureCactus3.height);
-
-            CheckCollissions(boundsPlayer, boundsCactus);
-            CheckCollissions(boundsPlayer, boundsCactus2);
-            CheckCollissions(boundsPlayer, boundsCactus3);
+            CheckCollissions(boundsPlayer);
 
             Raylib.BeginDrawing();
 
-            //DRAWING GAMEPLAY
+            //Drawing gameplay
             Raylib.ClearBackground(currentColor);
 
-            //CLOUDS
             Raylib.DrawTexture(textureCloud1, (int)cloudPosition.X - textureCloud1.width / 2, (int)cloudPosition.Y - textureCloud1.height, Color.WHITE);
             Raylib.DrawTexture(textureCloud2, (int)cloudPosition2.X - textureCloud1.width / 2, (int)cloudPosition2.Y - textureCloud2.height, Color.WHITE);
-
-            //CACTI
-            Raylib.DrawTexture(textureCactus, (int)cactusPosition.X - textureCactus.width / 2, (int)cactusPosition.Y - textureCactus.height, Color.WHITE);
-            Raylib.DrawTexture(textureCactus2, (int)cactusPosition2.X - textureCactus2.width / 2, (int)cactusPosition2.Y - textureCactus2.height, Color.WHITE);
-            Raylib.DrawTexture(textureCactus3, (int)cactusPosition3.X - textureCactus3.width / 2, (int)cactusPosition3.Y - textureCactus3.height, Color.WHITE);
-
-            //PLAYER
             Raylib.DrawTexture(texturePlayer, (int)playerPosition.X - texturePlayer.width / 2, (int)playerPosition.Y - texturePlayer.height, Color.WHITE);
-
-            //FLOOR
             Raylib.DrawTexture(textureFloor, (int)floorPosition.X, FLOOR_HEIGHT, Color.WHITE);
             Raylib.DrawTexture(textureFloor2, (int)floorPosition2.X, FLOOR_HEIGHT, Color.WHITE);
 
-            //DRAWING INTERFACE 
             DrawUI();
 
             Raylib.EndDrawing();
@@ -264,44 +235,6 @@ public class Program
         return playerPosition;
     }
 
-    private static void UpdateCactus(Texture2D textureCactus, ref Vector2 positionCactus, ref bool isMoving)
-    {
-        if (isMoving)
-        {
-            positionCactus.X -= gameSpeed * delta;
-        }
-
-        if (positionCactus.X + textureCactus.width <= 0)
-        {
-            isMoving = false;
-            positionCactus.X = SCREEN_WIDTH + textureCactus.width;
-        }
-    }
-
-    private static void CactusRandomizer(Texture2D textureCactus, Texture2D textureCactus2, Texture2D textureCactus3)
-    {
-        if (!newCactus) return;
-
-        Random rnd = new Random();
-        int random = rnd.Next(1, 4);
-
-        switch (random)
-        {
-            case 1:
-                startMovingCactus1 = true;
-                break;
-            case 2:
-                startMovingCactus2 = true;
-                break;
-            case 3:
-                startMovingCactus3 = true;
-                break;
-        }
-
-        newCactus = false;
-
-    }
-
     private static void UpdateFloor()
     {
         floorPosition.X -= gameSpeed * delta;
@@ -334,12 +267,15 @@ public class Program
         }
     }
 
-    private static void CheckCollissions(Rectangle boundsPlayer, Rectangle boundsCactus)
+    private static void CheckCollissions(Rectangle boundsPlayer)
     {
-        if (Raylib.CheckCollisionRecs(boundsPlayer, boundsCactus))
+        for (int i = 0; i < boundArray.Length; i++)
         {
-            if (hp > 0)
-                hp--;
+            if (Raylib.CheckCollisionRecs(boundsPlayer, boundArray[i]))
+            {
+                if (hp > 0)
+                    hp--;
+            }
         }
     }
 
@@ -364,12 +300,73 @@ public class Program
         cloudPosition = new Vector2(SCREEN_WIDTH, SCREEN_HEIGTH / 2);
         cloudPosition2 = new Vector2(SCREEN_WIDTH * 2, cloudPosition.Y - 50);
 
-        startMovingCactus1 = false;
-        startMovingCactus2 = false;
-        startMovingCactus3 = false;
-
         gameOverTextPositionY = 1000;
 
+        indexArray = 0;
+
+        for (int i = 0; i < isMovingArray.Length; i++)
+        {
+            cactusPositionArray[i] = new Vector2(0,0);
+            isMovingArray[i] = false;
+            cactusActiveTextureArray[i] = cactusTextureList[0];
+            boundArray[i] = new Rectangle(0,0,0,0);
+        }
+
         gameStart = true;
+    }
+
+    private static void UpdateCactus()
+    {
+        for (int i = 0; i < isMovingArray.Length; i++)
+        {
+            if (isMovingArray[i])
+            {
+                cactusPositionArray[i].X -= gameSpeed * delta;
+                Raylib.DrawTexture(cactusActiveTextureArray[i], (int)cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, (int)cactusPositionArray[i].Y - cactusActiveTextureArray[i].height / 2, Color.WHITE);
+                boundArray[i] = new Rectangle(cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, cactusPositionArray[i].Y - cactusActiveTextureArray[i].height, cactusActiveTextureArray[i].width, cactusActiveTextureArray[i].height);
+            }
+            if (cactusPositionArray[i].X + cactusActiveTextureArray[i].width <= 0)
+            {
+                isMovingArray[i] = false;
+                cactusPositionArray[i].X = SCREEN_WIDTH + cactusActiveTextureArray[i].width;
+                Raylib.DrawTexture(cactusActiveTextureArray[i], (int)cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, (int)cactusPositionArray[i].Y - cactusActiveTextureArray[i].height / 2, Color.WHITE);
+                boundArray[i] = new Rectangle(cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, cactusPositionArray[i].Y - cactusActiveTextureArray[i].height, cactusActiveTextureArray[i].width, cactusActiveTextureArray[i].height);
+            }
+        }
+    }
+
+    private static void CactusRandomizer()
+    {
+        int i = random.Next(0, cactusTextureList.Count);
+        Texture2D cactusActive = cactusTextureList[i];
+        if (indexArray >= cactusPositionArray.Length)
+        {
+            indexArray = 0;
+        }
+        try
+        {
+            cactusActiveTextureArray[indexArray] = cactusActive;
+            cactusPositionArray[indexArray].X = SCREEN_WIDTH;
+            cactusPositionArray[indexArray].Y = FLOOR_HEIGHT - cactusActiveTextureArray[indexArray].height / 2;
+            isMovingArray[indexArray] = true;
+            boundArray[indexArray] = new Rectangle(cactusPositionArray[indexArray].X - cactusActiveTextureArray[indexArray].width / 2, cactusPositionArray[indexArray].Y - cactusActiveTextureArray[indexArray].height, cactusActiveTextureArray[indexArray].width, cactusActiveTextureArray[indexArray].height);
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Out of range");
+            throw;
+        }
+    }
+
+    private static void NewCactusLogic()
+    {
+        timerCactus += Raylib.GetFrameTime();
+        if (timerCactus >= timeBetweenCactus)
+        {
+            timeBetweenCactus = (float)(random.NextDouble() * (MAX_TIME - MIN_TIME) + MIN_TIME);
+            timerCactus = 0f;
+            CactusRandomizer();
+            indexArray++;
+        }
     }
 }
