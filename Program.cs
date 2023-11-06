@@ -14,9 +14,12 @@ public class Program
     const int FLOOR_HEIGHT = 600;
     const int FLOOR_LENGTH = 2400;
     const int CLOUD_LENGTH = 95;
-    const float ORIGINAL_SPEED = 500f;
-    const float JUMP_IMPULSE = 350f;
-    const float GRAVITY = 335f;
+    const float ORIGINAL_SPEED = 700f;
+    const float JUMP_IMPULSE = 900f;
+    const float GRAVITY = 2100f;
+    const float RISE_SPEED = 100f;
+    const float MAX_SPEED = 1400f;
+    const int SCORE_SPEED_CHANGE = 20;
 
     //Images
     static Image imagePlayer = Raylib.LoadImage("assets/dinosaur.png");
@@ -36,6 +39,7 @@ public class Program
 
     //Gameplay
     static float gameSpeed = ORIGINAL_SPEED;
+    static bool canChange = true;
 
     //Score
     static string scoreText = "000000";
@@ -50,8 +54,8 @@ public class Program
 
     //Cactus variables
     static float timeBetweenCactus;
-    const float MIN_TIME = 0.7f;
-    const float MAX_TIME = 2.5f;
+    const float MIN_TIME = 0.9f;
+    const float MAX_TIME = 2.7f;
     static float timerCactus;
 
 
@@ -115,6 +119,7 @@ public class Program
             //Gameplay
             if (gameStart == true)
             {
+                UpdateGameplay();
                 UpdatePlayer();
                 UpdateFloor();
 
@@ -122,6 +127,7 @@ public class Program
 
                 if (timerScore >= 1f)
                 {
+                    canChange = true;
                     score += 1;
                     timerScore = 0f;
                 }
@@ -154,10 +160,6 @@ public class Program
             //RestartOption
             if (Raylib.IsKeyPressed(KeyboardKey.KEY_R) && !gameStart)
             {
-                cactusPosition.X = SCREEN_WIDTH + textureCactus.width;
-                cactusPosition2.X = SCREEN_WIDTH + textureCactus2.width;
-                cactusPosition3.X = SCREEN_WIDTH + textureCactus3.width;
-
                 ResetGame();
             }
 
@@ -287,6 +289,7 @@ public class Program
             highScore = score;
 
         score = 0;
+        scoreText = "000000";
         timerScore = 0;
         timerCactus = 0;
 
@@ -306,10 +309,10 @@ public class Program
 
         for (int i = 0; i < isMovingArray.Length; i++)
         {
-            cactusPositionArray[i] = new Vector2(0,0);
+            cactusPositionArray[i] = new Vector2(0, 0);
             isMovingArray[i] = false;
             cactusActiveTextureArray[i] = cactusTextureList[0];
-            boundArray[i] = new Rectangle(0,0,0,0);
+            boundArray[i] = new Rectangle(0, 0, 0, 0);
         }
 
         gameStart = true;
@@ -323,14 +326,14 @@ public class Program
             {
                 cactusPositionArray[i].X -= gameSpeed * delta;
                 Raylib.DrawTexture(cactusActiveTextureArray[i], (int)cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, (int)cactusPositionArray[i].Y - cactusActiveTextureArray[i].height / 2, Color.WHITE);
-                boundArray[i] = new Rectangle(cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, cactusPositionArray[i].Y - cactusActiveTextureArray[i].height, cactusActiveTextureArray[i].width, cactusActiveTextureArray[i].height);
+                boundArray[i] = new Rectangle(cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, cactusPositionArray[i].Y - cactusActiveTextureArray[i].height / 2, cactusActiveTextureArray[i].width, cactusActiveTextureArray[i].height);
             }
             if (cactusPositionArray[i].X + cactusActiveTextureArray[i].width <= 0)
             {
                 isMovingArray[i] = false;
                 cactusPositionArray[i].X = SCREEN_WIDTH + cactusActiveTextureArray[i].width;
                 Raylib.DrawTexture(cactusActiveTextureArray[i], (int)cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, (int)cactusPositionArray[i].Y - cactusActiveTextureArray[i].height / 2, Color.WHITE);
-                boundArray[i] = new Rectangle(cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, cactusPositionArray[i].Y - cactusActiveTextureArray[i].height, cactusActiveTextureArray[i].width, cactusActiveTextureArray[i].height);
+                boundArray[i] = new Rectangle(cactusPositionArray[i].X - cactusActiveTextureArray[i].width / 2, cactusPositionArray[i].Y - cactusActiveTextureArray[i].height / 2, cactusActiveTextureArray[i].width, cactusActiveTextureArray[i].height);
             }
         }
     }
@@ -367,6 +370,15 @@ public class Program
             timerCactus = 0f;
             CactusRandomizer();
             indexArray++;
+        }
+    }
+
+    private static void UpdateGameplay()
+    {
+        if (gameSpeed < MAX_SPEED && score != 0 && score % SCORE_SPEED_CHANGE == 0 && canChange == true)
+        {
+            canChange = false;
+            gameSpeed += RISE_SPEED;
         }
     }
 }
